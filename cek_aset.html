@@ -71,7 +71,7 @@ async function cekAset() {
 
     const { data, error } = await db
         .from("aset")
-        .select('id_aset, equip, deskripsi, tipe, nama_user, tim, deletion')
+        .select('id_aset, equip, deskripsi, tipe, nama_user, tim, deletion, foto')
         .eq("equip", equipInput)
         .eq("deletion", "0")
         .single()
@@ -83,15 +83,6 @@ async function cekAset() {
             </div>
         `
         return
-    }
-    
-    if (data.foto) {
-    
-        const { data: urlData } = db.storage
-            .from("aset-foto")
-            .getPublicUrl(data.foto)
-    
-        document.getElementById("previewFoto").src = urlData.publicUrl
     }
 
     // Tampilkan dalam bentuk form
@@ -146,12 +137,12 @@ async function cekAset() {
                     <label class="form-label">Foto Aset</label>
 
                     <div class="mb-2">
-                        <video id="camera" width="100%" autoplay class="border rounded"></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                        <img id="previewFoto" class="img-fluid rounded border" />
                     </div>
 
                     <div class="mb-2">
-                        <canvas id="canvas" style="display:none;"></canvas>
-                        <img id="previewFoto" class="img-fluid rounded border" />
+                        <video id="camera" width="100%" autoplay class="border rounded"></video>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -173,7 +164,16 @@ async function cekAset() {
 
             </div>
         </div>
-    `
+    `    
+    
+    if (data.foto) {
+    
+        const { data: urlData } = db.storage
+            .from("aset-foto")
+            .getPublicUrl(data.foto)
+    
+        document.getElementById("previewFoto").src = urlData.publicUrl
+    }
 }
 
 async function updateAset() {
@@ -293,5 +293,4 @@ function takePhoto() {
 </body>
 
 </html>
-
 
