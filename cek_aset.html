@@ -239,30 +239,21 @@ let stream = null
 let fotoFile = null
 async function startCamera() {
 
-    if (stream) {
-        stopCamera()
-    }
+    if (stream) stopCamera()
 
     try {
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: { exact: "environment" } // paksa kamera belakang
+                facingMode: { ideal: "environment" }
             },
             audio: false
         })
+
+        document.getElementById("camera").srcObject = stream
 
     } catch (err) {
-        // fallback kalau exact gagal
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: "environment"
-            },
-            audio: false
-        })
+        alert("Tidak bisa akses kamera: " + err.message)
     }
-
-    const video = document.getElementById("camera")
-    video.srcObject = stream
 }
 
 function stopCamera() {
@@ -301,3 +292,4 @@ function takePhoto() {
 </body>
 
 </html>
+
