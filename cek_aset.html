@@ -235,18 +235,41 @@ async function updateAset() {
     `
 }
 
-let stream
+let stream = null
 let fotoFile = null
-
 async function startCamera() {
+
+    if (stream) {
+        stopCamera()
+    }
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { exact: "environment" } // paksa kamera belakang
+            },
+            audio: false
+        })
+
+    } catch (err) {
+        // fallback kalau exact gagal
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "environment"
+            },
+            audio: false
+        })
+    }
+
     const video = document.getElementById("camera")
-
-    stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false
-    })
-
     video.srcObject = stream
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+        stream = null
+    }
 }
 
 function takePhoto() {
@@ -276,4 +299,5 @@ function takePhoto() {
 </script>
 
 </body>
+
 </html>
