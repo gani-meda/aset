@@ -86,11 +86,12 @@ async function cekAset() {
     }
     
     if (data.foto) {
-        const { data: publicUrl } = db.storage
+    
+        const { data: urlData } = db.storage
             .from("aset-foto")
             .getPublicUrl(data.foto)
-
-        document.getElementById("previewFoto").src = publicUrl.publicUrl
+    
+        document.getElementById("previewFoto").src = urlData.publicUrl
     }
 
     // Tampilkan dalam bentuk form
@@ -292,4 +293,5 @@ function takePhoto() {
 </body>
 
 </html>
+
 
