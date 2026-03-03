@@ -19,7 +19,8 @@
 </div>
 
 <script>
-const db = supabase.createClient("SUPABASE_URL", "ANON_KEY")
+const db = supabase.createClient("https://jtitwiqhgojnspaommhq.supabase.co", 
+                                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk")
 
 function onScanSuccess(decodedText) {
 
@@ -84,4 +85,5 @@ async function cekAset(equip) {
 </script>
 
 </body>
+
 </html>
