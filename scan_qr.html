@@ -14,7 +14,12 @@
 </head>
 
 <body class="bg-light">
-
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">Cek Aset</span>
+        <a href="home.html" class="btn btn-secondary btn-sm">Kembali</a>
+    </div>
+</nav>
 <div class="container py-4">
 
     <h4 class="text-center mb-3">Scan QR Aset</h4>
@@ -34,21 +39,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
+    let currentId = null
+
     function onScanSuccess(decodedText) {
 
-        console.log("QR Terbaca:", decodedText)
-
         html5QrcodeScanner.clear()
-
         cekAset(decodedText)
     }
 
     const html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
-        {
-            fps: 10,
-            qrbox: 250
-        }
+        { fps: 10, qrbox: 250 }
     )
 
     html5QrcodeScanner.render(onScanSuccess)
@@ -68,21 +69,211 @@ document.addEventListener("DOMContentLoaded", function() {
             return
         }
 
+        currentId = data.id_aset
+
         document.getElementById("hasilAset").innerHTML = `
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <p><strong>Equipment:</strong> ${data.equip}</p>
-                    <p><strong>Deskripsi:</strong> ${data.deskripsi}</p>
-                    <p><strong>Tipe:</strong> ${data.tipe}</p>
-                    <p><strong>Nama User:</strong> ${data.nama_user}</p>
-                    <p><strong>Tim:</strong> ${data.tim}</p>
+
+                    <div class="mb-2">
+                        <label>Equipment</label>
+                        <input type="text" id="equip_edit" 
+                               class="form-control text-uppercase"
+                               value="${data.equip}" readonly>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Deskripsi</label>
+                        <input type="text" id="deskripsi_edit" 
+                               class="form-control text-uppercase"
+                               value="${data.deskripsi ?? ''}">
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Tipe</label>
+                        <input type="text" id="tipe_edit" 
+                               class="form-control text-uppercase"
+                               value="${data.tipe ?? ''}">
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Nama User</label>
+                        <input type="text" id="nama_user_edit" 
+                               class="form-control text-uppercase"
+                               value="${data.nama_user ?? ''}">
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Tim</label>
+                        <input type="text" id="tim_edit" 
+                               class="form-control text-uppercase"
+                               value="${data.tim ?? ''}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Foto Aset</label>
+
+                        <div class="mb-2">
+                            <canvas id="canvas" style="display:none;"></canvas>
+                            <img id="previewFoto" class="img-fluid rounded border" />
+                        </div>
+
+                        <div class="mb-2">
+                            <video id="camera" width="100%" autoplay class="border rounded"></video>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" onclick="startCamera()" class="btn btn-primary">
+                                Buka Kamera
+                            </button>
+
+                            <button type="button" onclick="takePhoto()" class="btn btn-warning">
+                                Ambil Foto
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button onclick="updateAset()" 
+                                class="btn btn-success w-100">
+                            Update Data
+                        </button>
+                    </div>
+
+                    <div id="updateMsg" class="mt-2"></div>
+
                 </div>
             </div>
         `
+
+        if (data.foto) {    
+        const { data: urlData } = db.storage
+            .from("aset-foto")
+            .getPublicUrl(data.foto)
+    
+        document.getElementById("previewFoto").src = urlData.publicUrl
+        }
     }
+
+ window.updateAset = async function() {
+
+    if (!currentId) return
+
+    const deskripsi = 
+        document.getElementById("deskripsi_edit").value.toUpperCase()
+
+    const tipe = 
+        document.getElementById("tipe_edit").value.toUpperCase()
+
+    const nama_user = 
+        document.getElementById("nama_user_edit").value.toUpperCase()
+
+    const tim = 
+        document.getElementById("tim_edit").value.toUpperCase()
+
+    const msg = document.getElementById("updateMsg")
+    msg.innerHTML = `<div class="alert alert-info">Mengupdate...</div>`
+
+    let namaFile = null
+
+    if (fotoFile) {
+
+        namaFile = `${currentId}_${Date.now()}.jpg`
+
+        const { error: uploadError } = await db.storage
+            .from("aset-foto")
+            .upload(namaFile, fotoFile, { upsert: true })
+
+        if (uploadError) {
+            msg.innerHTML =
+                `<div class="alert alert-danger">${uploadError.message}</div>`
+            return
+        }
+    }
+
+    const updateData = {
+        deskripsi,
+        tipe,
+        nama_user,
+        tim
+    }
+
+    if (namaFile) {
+        updateData.foto = namaFile
+    }
+
+    const { error } = await db
+        .from("aset")
+        .update(updateData)
+        .eq("id_aset", currentId)
+
+    if (error) {
+        msg.innerHTML =
+            `<div class="alert alert-danger">${error.message}</div>`
+        return
+    }
+
+    msg.innerHTML =
+        `<div class="alert alert-success">Berhasil update data + foto</div>`
+}
 
 })
 
+
+
+let stream = null
+let fotoFile = null
+
+window.startCamera = async function() {
+
+    if (stream) stopCamera()
+
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false
+        })
+
+        document.getElementById("camera").srcObject = stream
+
+    } catch (err) {
+        alert("Tidak bisa akses kamera: " + err.message)
+    }
+}
+
+window.takePhoto = function() {
+
+    const video = document.getElementById("camera")
+    const canvas = document.getElementById("canvas")
+    const preview = document.getElementById("previewFoto")
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
+    const ctx = canvas.getContext("2d")
+    ctx.drawImage(video, 0, 0)
+
+    const imageData = canvas.toDataURL("image/jpeg", 0.8)
+
+    preview.src = imageData
+
+    fetch(imageData)
+        .then(res => res.blob())
+        .then(blob => {
+            fotoFile = new File([blob], "foto_aset.jpg", {
+                type: "image/jpeg"
+            })
+        })
+
+    stopCamera()
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+        stream = null
+    }
+}
 </script>
 
 </body>
