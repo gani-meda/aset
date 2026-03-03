@@ -219,7 +219,26 @@ async function updateAset() {
     let namaFile = null
 
     if (fotoFile) {
-        namaFile = `${id_aset}_${Date.now()}.jpg`
+                            // Ambil equip
+                    const equip = document
+                        .getElementById("equip_edit")
+                        .value
+                        .toUpperCase()
+
+                    // Format tanggal YYYYMMDDHHMMSS
+                    const now = new Date()
+
+                    const pad = (n) => n.toString().padStart(2, '0')
+
+                    const tanggal =
+                        now.getFullYear().toString() +
+                        pad(now.getMonth() + 1) +
+                        pad(now.getDate()) +
+                        pad(now.getHours()) +
+                        pad(now.getMinutes()) +
+                        pad(now.getSeconds())
+
+                    namaFile = `${equip}_${tanggal}.jpg`
 
         const { error: uploadError } = await db.storage
             .from("aset-foto")
@@ -317,4 +336,5 @@ function takePhoto() {
 </body>
 
 </html>
+
 
