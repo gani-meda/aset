@@ -1,105 +1,97 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Cek Aset</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <title>Cek Aset</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <script src="js/supabase-js@2.js">
+        <link href="css/bootstrap.min.css" rel="stylesheet" />
+        <script src="js/supabase-js@2.js">
 
-        document.addEventListener("input", function (e) {
-            if (e.target.matches("input[type='text'], textarea")) {
-                e.target.value = e.target.value.toUpperCase()
+            document.addEventListener("input", function (e) {
+                if (e.target.matches("input[type='text'], textarea")) {
+                    e.target.value = e.target.value.toUpperCase()
+                }
+            })
+        </script>
+        <style>
+            input[type="text"],
+            textarea {
+                text-transform: uppercase;
             }
-        })
-    </script>
-    <style>
-        input[type="text"],
-        textarea {
-            text-transform: uppercase;
-        }
-    </style>
-</head>
-<body class="bg-light">
+        </style>
+    </head>
+    <body class="bg-light">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand">Cek Aset</span>
+                <a href="home.html" class="btn btn-secondary btn-sm">Kembali</a>
+            </div>
+        </nav>
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand">Cek Aset</span>
-        <a href="home.html" class="btn btn-secondary btn-sm">Kembali</a>
-    </div>
-</nav>
+        <div class="container py-4">
+            <!-- Form -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Equipment Number</label>
+                        <input type="text" id="equip" class="form-control" placeholder="Masukkan Equipment Number" />
+                    </div>
 
-<div class="container py-4">
-
-    <!-- Form -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-
-            <div class="mb-3">
-                <label class="form-label">Equipment Number</label>
-                <input type="text" id="equip" class="form-control" placeholder="Masukkan Equipment Number">
+                    <button onclick="cekAset()" class="btn btn-primary w-100">Cek</button>
+                </div>
             </div>
 
-            <button onclick="cekAset()" class="btn btn-primary w-100">
-                Cek
-            </button>
-
+            <!-- Hasil -->
+            <div id="hasil"></div>
         </div>
-    </div>
 
-    <!-- Hasil -->
-    <div id="hasil"></div>
+        <script>
+            const supabaseUrl = "https://jtitwiqhgojnspaommhq.supabase.co";
+            const supabaseKey =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk";
 
-</div>
+            const { createClient } = supabase;
+            const db = createClient(supabaseUrl, supabaseKey);
 
-<script>
-const supabaseUrl = "https://jtitwiqhgojnspaommhq.supabase.co"
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk"
+            // Proteksi login
+            document.addEventListener("DOMContentLoaded", function () {
+                const user = localStorage.getItem("loginUser");
+                if (!user) {
+                    window.location.replace("index.html");
+                }
+            });
 
+            async function cekAset() {
+                const equipInput = document.getElementById("equip").value.trim();
+                const hasilDiv = document.getElementById("hasil");
 
-const { createClient } = supabase
-const db = createClient(supabaseUrl, supabaseKey)
+                if (!equipInput) {
+                    alert("Equipment Number wajib diisi");
+                    return;
+                }
 
-// Proteksi login
-document.addEventListener("DOMContentLoaded", function() {
-    const user = localStorage.getItem("loginUser")
-    if (!user) {
-        window.location.replace("index.html")
-    }
-})
-
-async function cekAset() {
-
-    const equipInput = document.getElementById("equip").value.trim()
-    const hasilDiv = document.getElementById("hasil")
-
-    if (!equipInput) {
-        alert("Equipment Number wajib diisi")
-        return
-    }
-
-    hasilDiv.innerHTML = `
+                hasilDiv.innerHTML = `
         <div class="alert alert-info">Mencari data...</div>
-    `
+    `;
 
-    const { data, error } = await db
-        .from("aset")
-        .select('id_aset, equip, deskripsi, tipe, nama_user, tim, deletion, foto')
-        .eq("equip", equipInput)
-        .eq("deletion", "0")
-        .single()
+                const { data, error } = await db
+                    .from("aset")
+                    .select("id_aset, equip, deskripsi, tipe, nama_user, tim, deletion, foto")
+                    .eq("equip", equipInput)
+                    .eq("deletion", "0")
+                    .single();
 
-    if (error || !data) {
-        hasilDiv.innerHTML = `
+                if (error || !data) {
+                    hasilDiv.innerHTML = `
             <div class="alert alert-warning">
                 Data tidak ditemukan
             </div>
-        `
-        return
-    }
+        `;
+                    return;
+                }
 
-    // Tampilkan dalam bentuk form
-    hasilDiv.innerHTML = `
+                // Tampilkan dalam bentuk form
+                hasilDiv.innerHTML = `
         <div class="card shadow-sm border-0">
             <div class="card-body">
 
@@ -112,22 +104,22 @@ async function cekAset() {
 
                 <div class="mb-3">
                     <label class="form-label">Deskripsi</label>
-                    <input type="text" id="deskripsi_edit" class="form-control" value="${data.deskripsi ?? ''}">
+                    <input type="text" id="deskripsi_edit" class="form-control" value="${data.deskripsi ?? ""}">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Tipe</label>
-                    <input type="text" id="tipe_edit" class="form-control" value="${data.tipe ?? ''}">
+                    <input type="text" id="tipe_edit" class="form-control" value="${data.tipe ?? ""}">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Nama User</label>
-                    <input type="text" id="nama_user_edit" class="form-control" value="${data.nama_user ?? ''}">
+                    <input type="text" id="nama_user_edit" class="form-control" value="${data.nama_user ?? ""}">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Tim</label>
-                    <input type="text" id="tim_edit" class="form-control" value="${data.tim ?? ''}">
+                    <input type="text" id="tim_edit" class="form-control" value="${data.tim ?? ""}">
                 </div>
 
                 <div class="mb-3">
@@ -177,32 +169,28 @@ async function cekAset() {
 
             </div>
         </div>
-    `    
-    
-    if (data.foto) {
-    
-        const { data: urlData } = db.storage
-            .from("aset-foto")
-            .getPublicUrl(data.foto)
-    
-        document.getElementById("previewFoto").src = urlData.publicUrl
-    }
-}
+    `;
 
-function upper(id) {
-    return document.getElementById(id).value.toUpperCase()
-}
+                if (data.foto) {
+                    const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
 
-async function updateAset() {
+                    document.getElementById("previewFoto").src = urlData.publicUrl;
+                }
+            }
 
-    const id_aset = document.getElementById("id_aset_edit").value
-    const equip = upper("equip_edit")
-    const deskripsi = upper("deskripsi_edit")
-    const tipe = upper("tipe_edit")
-    const nama_user = upper("nama_user_edit")
-    const tim = upper("tim_edit")
+            function upper(id) {
+                return document.getElementById(id).value.toUpperCase();
+            }
 
-    /*
+            async function updateAset() {
+                const id_aset = document.getElementById("id_aset_edit").value;
+                const equip = upper("equip_edit");
+                const deskripsi = upper("deskripsi_edit");
+                const tipe = upper("tipe_edit");
+                const nama_user = upper("nama_user_edit");
+                const tim = upper("tim_edit");
+
+                /*
     const equip = document.getElementById("equip_edit").value
     const deskripsi = document.getElementById("deskripsi_edit").value
     const tipe = document.getElementById("tipe_edit").value
@@ -210,16 +198,15 @@ async function updateAset() {
     const tim = document.getElementById("tim_edit").value
     */
 
-    const deletionValue =
-        document.querySelector('input[name="deletion_edit"]:checked').value
+                const deletionValue = document.querySelector('input[name="deletion_edit"]:checked').value;
 
-    const messageDiv = document.getElementById("updateMessage")
-    messageDiv.innerHTML = `<div class="alert alert-info">Mengupdate data...</div>`
+                const messageDiv = document.getElementById("updateMessage");
+                messageDiv.innerHTML = `<div class="alert alert-info">Mengupdate data...</div>`;
 
-    let namaFile = null
+                let namaFile = null;
 
-    if (fotoFile) {
-                            // Ambil equip
+                if (fotoFile) {
+                    // Ambil equip
                     const equip = document
                         .getElementById("equip_edit")
                         .value
@@ -240,101 +227,91 @@ async function updateAset() {
 
                     namaFile = `${equip}_${tanggal}.jpg`
 
-        const { error: uploadError } = await db.storage
-            .from("aset-foto")
-            .upload(namaFile, fotoFile)
+                    const { error: uploadError } = await db.storage.from("aset-foto").upload(namaFile, fotoFile);
 
-        if (uploadError) {
-            alert("Upload foto gagal: " + uploadError.message)
-            return
-        }
-    }
+                    if (uploadError) {
+                        alert("Upload foto gagal: " + uploadError.message);
+                        return;
+                    }
+                }
 
-    const { error } = await db
-        .from("aset")
-        .update({
-            equip,
-            deskripsi,
-            tipe,
-            nama_user,
-            tim,
-            deletion: deletionValue,
-            ...(namaFile && { foto: namaFile })
-        })
-        .eq("id_aset", id_aset)
+                const { error } = await db
+                    .from("aset")
+                    .update({
+                        equip,
+                        deskripsi,
+                        tipe,
+                        nama_user,
+                        tim,
+                        deletion: deletionValue,
+                        ...(namaFile && { foto: namaFile }),
+                    })
+                    .eq("id_aset", id_aset);
 
-    if (error) {
-        messageDiv.innerHTML = `
+                if (error) {
+                    messageDiv.innerHTML = `
             <div class="alert alert-danger">
                 Update gagal: ${error.message}
             </div>
-        `
-        return
-    }
+        `;
+                    return;
+                }
 
-    messageDiv.innerHTML = `
+                messageDiv.innerHTML = `
         <div class="alert alert-success">
             Data berhasil diupdate
         </div>
-    `
-}
+    `;
+            }
 
-let stream = null
-let fotoFile = null
-async function startCamera() {
+            let stream = null;
+            let fotoFile = null;
+            async function startCamera() {
+                if (stream) stopCamera();
 
-    if (stream) stopCamera()
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: "environment" },
+                        },
+                        audio: false,
+                    });
 
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: "environment" }
-            },
-            audio: false
-        })
+                    document.getElementById("camera").srcObject = stream;
+                } catch (err) {
+                    alert("Tidak bisa akses kamera: " + err.message);
+                }
+            }
 
-        document.getElementById("camera").srcObject = stream
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    stream = null;
+                }
+            }
 
-    } catch (err) {
-        alert("Tidak bisa akses kamera: " + err.message)
-    }
-}
+            function takePhoto() {
+                const video = document.getElementById("camera");
+                const canvas = document.getElementById("canvas");
+                const preview = document.getElementById("previewFoto");
 
-function stopCamera() {
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-        stream = null
-    }
-}
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
 
-function takePhoto() {
-    const video = document.getElementById("camera")
-    const canvas = document.getElementById("canvas")
-    const preview = document.getElementById("previewFoto")
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0);
 
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+                const imageData = canvas.toDataURL("image/jpeg");
 
-    const ctx = canvas.getContext("2d")
-    ctx.drawImage(video, 0, 0)
+                preview.src = imageData;
 
-    const imageData = canvas.toDataURL("image/jpeg")
-
-    preview.src = imageData
-
-    // Convert base64 ke file
-    fetch(imageData)
-        .then(res => res.blob())
-        .then(blob => {
-            fotoFile = new File([blob], "foto_aset.jpg", { type: "image/jpeg" })
-        })
-}
-
-
-</script>
-
-</body>
-
+                // Convert base64 ke file
+                fetch(imageData)
+                    .then((res) => res.blob())
+                    .then((blob) => {
+                        fotoFile = new File([blob], "foto_aset.jpg", { type: "image/jpeg" });
+                    });
+            }
+        </script>
+    </body>
 </html>
-
-

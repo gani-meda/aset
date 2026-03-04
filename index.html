@@ -1,30 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Login</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <script src="js/supabase-js@2.js"></script>
-</head>
-<body class="bg-light">
+    <head>
+        <title>Login</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet" />
+        <script src="js/supabase-js@2.js"></script>
+    </head>
+    <body class="bg-light">
+        <div class="container d-flex justify-content-center align-items-center vh-100">
+            <div class="card shadow p-4" style="width: 350px">
+                <h4 class="text-center mb-3">Login</h4>
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow p-4" style="width:350px;">
-        <h4 class="text-center mb-3">Login</h4>
+                <div class="mb-3">
+                    <input type="text" id="username" class="form-control" placeholder="Username" />
+                </div>
 
-        <div class="mb-3">
-            <input type="text" id="username" class="form-control" placeholder="Username">
+                <div class="mb-3">
+                    <input type="password" id="password" class="form-control" placeholder="Password" />
+                </div>
+
+                <button class="btn btn-primary w-100" onclick="login()">Login</button>
+
+                <div id="message" class="mt-3 text-danger text-center"></div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <input type="password" id="password" class="form-control" placeholder="Password">
-        </div>
+        <script>
+            const supabaseUrl = "https://jtitwiqhgojnspaommhq.supabase.co"
+            const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk"
 
-        <button class="btn btn-primary w-100" onclick="login()">Login</button>
+            const { createClient } = supabase
+            const db = createClient(supabaseUrl, supabaseKey)
 
-        <div id="message" class="mt-3 text-danger text-center"></div>
-    </div>
-</div>
+            // LOGIN FUNCTION
+            async function login() {
 
-<script src="script.js"></script>
-</body>
+                const username = document.getElementById("username").value
+                const password = document.getElementById("password").value
+                const message = document.getElementById("message")
+
+                message.innerText = "Checking..."
+
+                const { data, error } = await db
+                    .from("user_akses")
+                    .select("*")
+                    .eq("username", username)
+                    .eq("password", password)
+                    .eq("status", "1")
+                    .single()
+
+                if (error || !data) {
+                    message.innerText = "Username / Password salah atau akun tidak aktif"
+                    return
+                }
+
+                // Simpan session sederhana
+                localStorage.setItem("loginUser", username)
+
+                // beri delay kecil agar pasti tersimpan
+                setTimeout(() => {
+                    window.location.href = "home.html"
+                }, 200)
+            }
+        </script>
+    </body>
 </html>

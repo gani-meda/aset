@@ -1,80 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Scan QR Aset</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <title>Scan QR Aset</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" />
+        <!-- Supabase CDN -->
+        <script src="js/supabase-js@2.js"></script>
+        <!-- QR Code Library -->
+        <script src="js/html5-qrcode.min.js"></script>
+    </head>
 
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <body class="bg-light">
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand">Cek Aset</span>
+                <a href="home.html" class="btn btn-secondary btn-sm">Kembali</a>
+            </div>
+        </nav>
+        <div class="container py-4">
+            <h4 class="text-center mb-3">Scan QR Aset</h4>
+            <div id="reader" style="width: 100%"></div>
+            <div id="hasilAset" class="mt-4"></div>
+        </div>
 
-    <!-- Supabase CDN -->
-    <script src="js/supabase-js@2.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const SUPABASE_URL = "https://jtitwiqhgojnspaommhq.supabase.co";
+                const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk";
 
-    <!-- QR Code Library -->
-    <script src="js/html5-qrcode.min.js"></script>
-</head>
+                const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                let currentId = null;
 
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand">Cek Aset</span>
-        <a href="home.html" class="btn btn-secondary btn-sm">Kembali</a>
-    </div>
-</nav>
-<div class="container py-4">
+                function onScanSuccess(decodedText) {
+                    html5QrcodeScanner.clear();
+                    cekAset(decodedText);
+                }
 
-    <h4 class="text-center mb-3">Scan QR Aset</h4>
+                const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                html5QrcodeScanner.render(onScanSuccess);
 
-    <div id="reader" style="width:100%;"></div>
+                async function cekAset(equip) {
+                    const { data, error } = await db
+                        .from("aset")
+                        .select("*")
+                        .eq("equip", equip)
+                        .eq("deletion", "0")
+                        .single();
 
-    <div id="hasilAset" class="mt-4"></div>
+                    if (error || !data) {
+                        document.getElementById("hasilAset").innerHTML =
+                            `<div class="alert alert-danger">Aset tidak ditemukan</div>`;
+                        return;
+                    }
 
-</div>
+                    currentId = data.id_aset;
 
-<script>
-
-document.addEventListener("DOMContentLoaded", function() {
-
-    const SUPABASE_URL = "https://jtitwiqhgojnspaommhq.supabase.co"
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk"
-
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-
-    let currentId = null
-
-    function onScanSuccess(decodedText) {
-
-        html5QrcodeScanner.clear()
-        cekAset(decodedText)
-    }
-
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: 250 }
-    )
-
-    html5QrcodeScanner.render(onScanSuccess)
-
-    async function cekAset(equip) {
-
-        const { data, error } = await db
-            .from("aset")
-            .select("*")
-            .eq("equip", equip)
-            .eq("deletion", "0")
-            .single()
-
-        if (error || !data) {
-            document.getElementById("hasilAset").innerHTML =
-                `<div class="alert alert-danger">Aset tidak ditemukan</div>`
-            return
-        }
-
-        currentId = data.id_aset
-
-        document.getElementById("hasilAset").innerHTML = `
+            document.getElementById("hasilAset").innerHTML = `
             <div class="card shadow-sm">
                 <div class="card-body">
-
                     <div class="mb-2">
                         <label>Equipment</label>
                         <input type="text" id="equip_edit" 
@@ -86,33 +69,32 @@ document.addEventListener("DOMContentLoaded", function() {
                         <label>Deskripsi</label>
                         <input type="text" id="deskripsi_edit" 
                                class="form-control text-uppercase"
-                               value="${data.deskripsi ?? ''}">
+                               value="${data.deskripsi ?? ""}">
                     </div>
 
                     <div class="mb-2">
                         <label>Tipe</label>
                         <input type="text" id="tipe_edit" 
                                class="form-control text-uppercase"
-                               value="${data.tipe ?? ''}">
+                               value="${data.tipe ?? ""}">
                     </div>
 
                     <div class="mb-2">
                         <label>Nama User</label>
                         <input type="text" id="nama_user_edit" 
                                class="form-control text-uppercase"
-                               value="${data.nama_user ?? ''}">
+                               value="${data.nama_user ?? ""}">
                     </div>
 
                     <div class="mb-2">
                         <label>Tim</label>
                         <input type="text" id="tim_edit" 
                                class="form-control text-uppercase"
-                               value="${data.tim ?? ''}">
+                               value="${data.tim ?? ""}">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Foto Aset</label>
-
                         <div class="mb-2">
                             <canvas id="canvas" style="display:none;"></canvas>
                             <img id="previewFoto" class="img-fluid rounded border" />
@@ -134,190 +116,158 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
 
                     <div class="mt-3 d-grid gap-2">
-
-                        <button onclick="updateAset()" 
-                                class="btn btn-success">
+                        <button onclick="updateAset()" class="btn btn-success">
                             Update Data
                         </button>
 
-                        <button onclick="scanUlang()" 
-                                class="btn btn-secondary">
+                        <button onclick="scanUlang()" class="btn btn-secondary">
                             Scan Ulang
                         </button>
-
                     </div>
 
                     <div id="updateMsg" class="mt-2"></div>
-
                 </div>
             </div>
-        `
+        `;
 
-        if (data.foto) {    
-        const { data: urlData } = db.storage
-            .from("aset-foto")
-            .getPublicUrl(data.foto)
-    
-        document.getElementById("previewFoto").src = urlData.publicUrl
-        }
-    }
+                    if (data.foto) {
+                        const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
 
- window.updateAset = async function() {
+                        document.getElementById("previewFoto").src = urlData.publicUrl;
+                    }
+                }
 
-    if (!currentId) return
+                window.updateAset = async function () {
+                    if (!currentId) return;
 
-    const deskripsi = 
-        document.getElementById("deskripsi_edit").value.toUpperCase()
+                    const deskripsi = document.getElementById("deskripsi_edit").value.toUpperCase();
+                    const tipe = document.getElementById("tipe_edit").value.toUpperCase();
+                    const nama_user = document.getElementById("nama_user_edit").value.toUpperCase();
+                    const tim = document.getElementById("tim_edit").value.toUpperCase();
+                    const msg = document.getElementById("updateMsg");
+                    msg.innerHTML = `<div class="alert alert-info">Mengupdate...</div>`;
 
-    const tipe = 
-        document.getElementById("tipe_edit").value.toUpperCase()
+                    let namaFile = null;
 
-    const nama_user = 
-        document.getElementById("nama_user_edit").value.toUpperCase()
+                    if (fotoFile) {
+                         // Ambil equip
+                        const equip = document
+                            .getElementById("equip_edit")
+                            .value
+                            .toUpperCase()
 
-    const tim = 
-        document.getElementById("tim_edit").value.toUpperCase()
+                        // Format tanggal YYYYMMDDHHMMSS
+                        const now = new Date()
 
-    const msg = document.getElementById("updateMsg")
-    msg.innerHTML = `<div class="alert alert-info">Mengupdate...</div>`
+                        const pad = (n) => n.toString().padStart(2, '0')
 
-    let namaFile = null
+                        const tanggal =
+                            now.getFullYear().toString() +
+                            pad(now.getMonth() + 1) +
+                            pad(now.getDate()) +
+                            pad(now.getHours()) +
+                            pad(now.getMinutes()) +
+                            pad(now.getSeconds())
 
-    if (fotoFile) {
+                        namaFile = `${equip}_${tanggal}.jpg`
 
-        // Ambil equip
-const equip = document
-    .getElementById("equip_edit")
-    .value
-    .toUpperCase()
+                        const { error: uploadError } = await db.storage
+                            .from("aset-foto")
+                            .upload(namaFile, fotoFile, { upsert: true });
 
-// Format tanggal YYYYMMDDHHMMSS
-const now = new Date()
+                        if (uploadError) {
+                            msg.innerHTML = `<div class="alert alert-danger">${uploadError.message}</div>`;
+                            return;
+                        }
+                    }
 
-const pad = (n) => n.toString().padStart(2, '0')
+                    const updateData = {
+                        deskripsi,
+                        tipe,
+                        nama_user,
+                        tim,
+                    };
 
-const tanggal =
-    now.getFullYear().toString() +
-    pad(now.getMonth() + 1) +
-    pad(now.getDate()) +
-    pad(now.getHours()) +
-    pad(now.getMinutes()) +
-    pad(now.getSeconds())
+                    if (namaFile) {
+                        updateData.foto = namaFile;
+                    }
 
-namaFile = `${equip}_${tanggal}.jpg`
+                    const { error } = await db.from("aset").update(updateData).eq("id_aset", currentId);
 
-        const { error: uploadError } = await db.storage
-            .from("aset-foto")
-            .upload(namaFile, fotoFile, { upsert: true })
+                    if (error) {
+                        msg.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+                        return;
+                    }
 
-        if (uploadError) {
-            msg.innerHTML =
-                `<div class="alert alert-danger">${uploadError.message}</div>`
-            return
-        }
-    }
+                    msg.innerHTML = `<div class="alert alert-success">Berhasil update data + foto</div>`;
+                };
+            });
 
-    const updateData = {
-        deskripsi,
-        tipe,
-        nama_user,
-        tim
-    }
+            let stream = null;
+            let fotoFile = null;
 
-    if (namaFile) {
-        updateData.foto = namaFile
-    }
+            window.startCamera = async function () {
+                if (stream) stopCamera();
 
-    const { error } = await db
-        .from("aset")
-        .update(updateData)
-        .eq("id_aset", currentId)
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: "environment" } },
+                        audio: false,
+                    });
 
-    if (error) {
-        msg.innerHTML =
-            `<div class="alert alert-danger">${error.message}</div>`
-        return
-    }
+                    document.getElementById("camera").srcObject = stream;
+                } catch (err) {
+                    alert("Tidak bisa akses kamera: " + err.message);
+                }
+            };
 
-    msg.innerHTML =
-        `<div class="alert alert-success">Berhasil update data + foto</div>`
-}
+            window.takePhoto = function () {
+                const video = document.getElementById("camera");
+                const canvas = document.getElementById("canvas");
+                const preview = document.getElementById("previewFoto");
 
-})
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
 
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0);
 
+                const imageData = canvas.toDataURL("image/jpeg", 0.8);
 
-let stream = null
-let fotoFile = null
+                preview.src = imageData;
 
-window.startCamera = async function() {
+                fetch(imageData)
+                    .then((res) => res.blob())
+                    .then((blob) => {
+                        fotoFile = new File([blob], "foto_aset.jpg", {
+                            type: "image/jpeg",
+                        });
+                    });
 
-    if (stream) stopCamera()
+                stopCamera();
+            };
 
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
-            audio: false
-        })
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    stream = null;
+                }
+            }
 
-        document.getElementById("camera").srcObject = stream
+            function scanUlang() {
+                // Optional: hentikan kamera kalau masih aktif
+                if (typeof stopCamera === "function") {
+                    stopCamera();
+                }
 
-    } catch (err) {
-        alert("Tidak bisa akses kamera: " + err.message)
-    }
-}
+                // Reset ID kalau ada
+                if (typeof currentId !== "undefined") {
+                    currentId = null;
+                }
 
-window.takePhoto = function() {
-
-    const video = document.getElementById("camera")
-    const canvas = document.getElementById("canvas")
-    const preview = document.getElementById("previewFoto")
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-
-    const ctx = canvas.getContext("2d")
-    ctx.drawImage(video, 0, 0)
-
-    const imageData = canvas.toDataURL("image/jpeg", 0.8)
-
-    preview.src = imageData
-
-    fetch(imageData)
-        .then(res => res.blob())
-        .then(blob => {
-            fotoFile = new File([blob], "foto_aset.jpg", {
-                type: "image/jpeg"
-            })
-        })
-
-    stopCamera()
-}
-
-function stopCamera() {
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-        stream = null
-    }
-}
-
-function scanUlang() {
-
-    // Optional: hentikan kamera kalau masih aktif
-    if (typeof stopCamera === "function") {
-        stopCamera()
-    }
-
-    // Reset ID kalau ada
-    if (typeof currentId !== "undefined") {
-        currentId = null
-    }
-
-    // Redirect ke halaman scan
-    window.location.href = "scan_qr.html"
-}
-</script>
-
-</body>
-
+                // Redirect ke halaman scan
+                window.location.href = "scan_qr.html";
+            }
+        </script>
+    </body>
 </html>
