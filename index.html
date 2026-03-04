@@ -45,7 +45,7 @@
                     .select("*")
                     .eq("username", username)
                     .eq("password", password)
-                    .eq("status", "1")
+                    .eq("status", "Aktif")
                     .single()
 
                 if (error || !data) {
@@ -64,3 +64,4 @@
         </script>
     </body>
 </html>
+
