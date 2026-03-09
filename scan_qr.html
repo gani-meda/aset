@@ -41,7 +41,7 @@
 
                 async function cekAset(equip) {
                     const { data, error } = await db
-                        .from("aset")
+                        .from("asset")
                         .select("*")
                         .eq("equip", equip)
                         .eq("deletion", "0")
@@ -53,7 +53,7 @@
                         return;
                     }
 
-                    currentId = data.id_aset;
+                    currentId = data.equip;
 
             document.getElementById("hasilAset").innerHTML = `
             <div class="card shadow-sm">
@@ -132,7 +132,6 @@
 
                     if (data.foto) {
                         const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
-
                         document.getElementById("previewFoto").src = urlData.publicUrl;
                     }
                 }
@@ -192,7 +191,7 @@
                         updateData.foto = namaFile;
                     }
 
-                    const { error } = await db.from("aset").update(updateData).eq("id_aset", currentId);
+                    const { error } = await db.from("asset").update(updateData).eq("equip", currentId);
 
                     if (error) {
                         msg.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;

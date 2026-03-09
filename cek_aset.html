@@ -36,7 +36,6 @@
                         <label class="form-label">Equipment Number</label>
                         <input type="text" id="equip" class="form-control" placeholder="Masukkan Equipment Number" />
                     </div>
-
                     <button onclick="cekAset()" class="btn btn-primary w-100">Cek</button>
                 </div>
             </div>
@@ -47,8 +46,7 @@
 
         <script>
             const supabaseUrl = "https://jtitwiqhgojnspaommhq.supabase.co";
-            const supabaseKey =
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk";
+            const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0aXR3aXFoZ29qbnNwYW9tbWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0MTExNjksImV4cCI6MjA4Nzk4NzE2OX0.BP8y61XSPGSveuQeNAcubh1DE3g-wFtSQF0KxqdZeBk";
 
             const { createClient } = supabase;
             const db = createClient(supabaseUrl, supabaseKey);
@@ -66,27 +64,24 @@
                 const hasilDiv = document.getElementById("hasil");
 
                 if (!equipInput) {
-                    alert("Equipment Number wajib diisi");
+                    alert("Equipment Number wajib diisi!!!");
                     return;
                 }
 
-                hasilDiv.innerHTML = `
-        <div class="alert alert-info">Mencari data...</div>
-    `;
+                hasilDiv.innerHTML = `<div class="alert alert-info">Mencari data...</div>`;
 
                 const { data, error } = await db
-                    .from("aset")
-                    .select("id_aset, equip, deskripsi, tipe, nama_user, tim, deletion, foto")
+                    .from("asset")
+                    .select("equip, deskripsi, tipe, nama_user, tim, deletion, foto")
                     .eq("equip", equipInput)
                     .eq("deletion", "0")
                     .single();
 
                 if (error || !data) {
                     hasilDiv.innerHTML = `
-            <div class="alert alert-warning">
-                Data tidak ditemukan
-            </div>
-        `;
+                        <div class="alert alert-warning">
+                            Data tidak ditemukan
+                        </div> `;
                     return;
                 }
 
@@ -95,11 +90,9 @@
         <div class="card shadow-sm border-0">
             <div class="card-body">
 
-                <input type="hidden" id="id_aset_edit" value="${data.id_aset}">
-
                 <div class="mb-3">
                     <label class="form-label">Equipment</label>
-                    <input type="text" id="equip_edit" class="form-control" value="${data.equip}">
+                    <input type="text" id="equip_edit" class="form-control" value="${data.equip}" disabled>
                 </div>
 
                 <div class="mb-3">
@@ -124,7 +117,6 @@
 
                 <div class="mb-3">
                     <label class="form-label d-block">Status</label>
-
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="deletion_edit" 
                             value="0" ${data.deletion === "0" ? "checked" : ""}>
@@ -140,7 +132,6 @@
 
                 <div class="mb-3">
                     <label class="form-label">Foto Aset</label>
-
                     <div class="mb-2">
                         <canvas id="canvas" style="display:none;"></canvas>
                         <img id="previewFoto" class="img-fluid rounded border" />
@@ -173,7 +164,6 @@
 
                 if (data.foto) {
                     const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
-
                     document.getElementById("previewFoto").src = urlData.publicUrl;
                 }
             }
@@ -183,20 +173,11 @@
             }
 
             async function updateAset() {
-                const id_aset = document.getElementById("id_aset_edit").value;
                 const equip = upper("equip_edit");
                 const deskripsi = upper("deskripsi_edit");
                 const tipe = upper("tipe_edit");
                 const nama_user = upper("nama_user_edit");
                 const tim = upper("tim_edit");
-
-                /*
-    const equip = document.getElementById("equip_edit").value
-    const deskripsi = document.getElementById("deskripsi_edit").value
-    const tipe = document.getElementById("tipe_edit").value
-    const nama_user = document.getElementById("nama_user_edit").value
-    const tim = document.getElementById("tim_edit").value
-    */
 
                 const deletionValue = document.querySelector('input[name="deletion_edit"]:checked').value;
 
@@ -214,9 +195,7 @@
 
                     // Format tanggal YYYYMMDDHHMMSS
                     const now = new Date()
-
                     const pad = (n) => n.toString().padStart(2, '0')
-
                     const tanggal =
                         now.getFullYear().toString() +
                         pad(now.getMonth() + 1) +
@@ -236,7 +215,7 @@
                 }
 
                 const { error } = await db
-                    .from("aset")
+                    .from("asset")
                     .update({
                         equip,
                         deskripsi,
@@ -246,22 +225,20 @@
                         deletion: deletionValue,
                         ...(namaFile && { foto: namaFile }),
                     })
-                    .eq("id_aset", id_aset);
+                    .eq("equip", equip);
 
                 if (error) {
                     messageDiv.innerHTML = `
-            <div class="alert alert-danger">
-                Update gagal: ${error.message}
-            </div>
-        `;
+                        <div class="alert alert-danger">
+                            Update gagal: ${error.message}
+                        </div>`;
                     return;
                 }
 
                 messageDiv.innerHTML = `
-        <div class="alert alert-success">
-            Data berhasil diupdate
-        </div>
-    `;
+                    <div class="alert alert-success">
+                        Data berhasil diupdate
+                    </div>`;
             }
 
             let stream = null;
