@@ -64,7 +64,7 @@
                 const hasilDiv = document.getElementById("hasil");
 
                 if (!equipInput) {
-                    alert("Equipment Number wajib diisi!!!");
+                    alert("Equipment Number wajib diisi");
                     return;
                 }
 
@@ -72,7 +72,7 @@
 
                 const { data, error } = await db
                     .from("asset")
-                    .select("equip, deskripsi, tipe, nama_user, tim, deletion, foto")
+                    .select("equip, deskripsi, tipe, nama_user, tim, deletion, foto_fisik, foto_sistem")
                     .eq("equip", equipInput)
                     .eq("deletion", "0")
                     .single();
@@ -130,27 +130,46 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Foto Aset</label>
-                    <div class="mb-2">
-                        <canvas id="canvas" style="display:none;"></canvas>
-                        <img id="previewFoto" class="img-fluid rounded border" />
-                    </div>
+  <hr>
 
-                    <div class="mb-2">
-                        <video id="camera" width="100%" autoplay class="border rounded"></video>
-                    </div>
+<label class="fw-bold">Foto Fisik</label>
 
-                    <div class="d-flex gap-2">
-                        <button type="button" onclick="startCamera()" class="btn btn-primary">
-                            Buka Kamera
-                        </button>
+<video id="camera_fisik" autoplay playsinline 
+       class="w-100 border rounded mb-2"></video>
 
-                        <button type="button" onclick="takePhoto()" class="btn btn-warning">
-                            Ambil Foto
-                        </button>
-                    </div>
-                </div>
+<img id="preview_fisik" class="img-fluid border rounded mb-2"/>
+
+<div class="d-flex gap-2 mb-3">
+    <button type="button" onclick="startCamera('fisik')" 
+            class="btn btn-primary w-50">
+        Buka Kamera
+    </button>
+
+    <button type="button" onclick="takePhoto('fisik')" 
+            class="btn btn-warning w-50">
+        Ambil Foto
+    </button>
+</div>
+
+
+<label class="fw-bold">Foto Sistem</label>
+
+<video id="camera_sistem" autoplay playsinline 
+       class="w-100 border rounded mb-2"></video>
+
+<img id="preview_sistem" class="img-fluid border rounded mb-2"/>
+
+<div class="d-flex gap-2 mb-3">
+    <button type="button" onclick="startCamera('sistem')" 
+            class="btn btn-primary w-50">
+        Buka Kamera
+    </button>
+
+    <button type="button" onclick="takePhoto('sistem')" 
+            class="btn btn-warning w-50">
+        Ambil Foto
+    </button>
+</div>
 
                 <button onclick="updateAset()" class="btn btn-success w-100">
                     Update Data
@@ -162,9 +181,9 @@
         </div>
     `;
 
-                if (data.foto) {
-                    const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
-                    document.getElementById("previewFoto").src = urlData.publicUrl;
+                if (data.foto_fisik) {
+                    const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_fisik);
+                    document.getElementById("preview_fisik").src = urlData.publicUrl;
                 }
             }
 
@@ -179,116 +198,127 @@
                 const nama_user = upper("nama_user_edit");
                 const tim = upper("tim_edit");
 
-                const deletionValue = document.querySelector('input[name="deletion_edit"]:checked').value;
+const now = new Date()
+const pad = (n) => n.toString().padStart(2,'0')
 
-                const messageDiv = document.getElementById("updateMessage");
-                messageDiv.innerHTML = `<div class="alert alert-info">Mengupdate data...</div>`;
+const tanggal =
+    now.getFullYear() +
+    pad(now.getMonth()+1) +
+    pad(now.getDate()) +
+    pad(now.getHours()) +
+    pad(now.getMinutes()) +
+    pad(now.getSeconds())
 
-                let namaFile = null;
+let namaFotoFisik = null
+let namaFotoSistem = null
 
-                if (fotoFile) {
-                    // Ambil equip
-                    const equip = document
-                        .getElementById("equip_edit")
-                        .value
-                        .toUpperCase()
 
-                    // Format tanggal YYYYMMDDHHMMSS
-                    const now = new Date()
-                    const pad = (n) => n.toString().padStart(2, '0')
-                    const tanggal =
-                        now.getFullYear().toString() +
-                        pad(now.getMonth() + 1) +
-                        pad(now.getDate()) +
-                        pad(now.getHours()) +
-                        pad(now.getMinutes()) +
-                        pad(now.getSeconds())
+// upload foto fisik
+if (fotoFisik) {
 
-                    namaFile = `${equip}_${tanggal}.jpg`
+    namaFotoFisik = `${equip}_${tanggal}_fisik.jpg`
 
-                    const { error: uploadError } = await db.storage.from("aset-foto").upload(namaFile, fotoFile);
+    await db.storage
+        .from("aset-foto")
+        .upload(namaFotoFisik, fotoFisik, { upsert: true })
+}
 
-                    if (uploadError) {
-                        alert("Upload foto gagal: " + uploadError.message);
-                        return;
-                    }
-                }
 
-                const { error } = await db
-                    .from("asset")
-                    .update({
-                        equip,
-                        deskripsi,
-                        tipe,
-                        nama_user,
-                        tim,
-                        deletion: deletionValue,
-                        ...(namaFile && { foto: namaFile }),
-                    })
-                    .eq("equip", equip);
+// upload foto sistem
+if (fotoSistem) {
 
-                if (error) {
-                    messageDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            Update gagal: ${error.message}
-                        </div>`;
-                    return;
-                }
+    namaFotoSistem = `${equip}_${tanggal}_sistem.jpg`
 
-                messageDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        Data berhasil diupdate
-                    </div>`;
+    await db.storage
+        .from("aset-foto")
+        .upload(namaFotoSistem, fotoSistem, { upsert: true })
+}
+
+
+const updateData = {
+    deskripsi,
+    tipe,
+    nama_user,
+    tim
+}
+
+if (namaFotoFisik) updateData.foto_fisik = namaFotoFisik
+if (namaFotoSistem) updateData.foto_sistem = namaFotoSistem
+
+
+await db
+    .from("asset")
+    .update(updateData)
+    .eq("equip", currentId)
             }
 
-            let stream = null;
-            let fotoFile = null;
-            async function startCamera() {
-                if (stream) stopCamera();
+            let fotoFisik = null
+let fotoSistem = null
+let stream = null
+            
+async function startCamera(tipe) {
 
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: { ideal: "environment" },
-                        },
-                        audio: false,
-                    });
+    if (stream) stopCamera()
 
-                    document.getElementById("camera").srcObject = stream;
-                } catch (err) {
-                    alert("Tidak bisa akses kamera: " + err.message);
-                }
+    try {
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false
+        })
+
+        const video = document.getElementById(`camera_${tipe}`)
+        video.srcObject = stream
+
+    } catch (err) {
+        alert("Tidak bisa akses kamera")
+    }
+}
+
+function takePhoto(tipe) {
+
+    const video = document.getElementById(`camera_${tipe}`)
+    const canvas = document.createElement("canvas")
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
+    const ctx = canvas.getContext("2d")
+    ctx.drawImage(video, 0, 0)
+
+    const imageData = canvas.toDataURL("image/jpeg", 0.8)
+
+    document.getElementById(`preview_${tipe}`).src = imageData
+
+    fetch(imageData)
+        .then(res => res.blob())
+        .then(blob => {
+
+            const file = new File([blob], `${tipe}.jpg`, {
+                type: "image/jpeg"
+            })
+
+            if (tipe === "fisik") {
+                fotoFisik = file
+            } else {
+                fotoSistem = file
             }
 
-            function stopCamera() {
-                if (stream) {
-                    stream.getTracks().forEach((track) => track.stop());
-                    stream = null;
-                }
-            }
+        })
 
-            function takePhoto() {
-                const video = document.getElementById("camera");
-                const canvas = document.getElementById("canvas");
-                const preview = document.getElementById("previewFoto");
+    stopCamera()
+}
 
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+        stream = null
+    }
+}
 
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0);
 
-                const imageData = canvas.toDataURL("image/jpeg");
 
-                preview.src = imageData;
 
-                // Convert base64 ke file
-                fetch(imageData)
-                    .then((res) => res.blob())
-                    .then((blob) => {
-                        fotoFile = new File([blob], "foto_aset.jpg", { type: "image/jpeg" });
-                    });
-            }
         </script>
     </body>
 </html>
