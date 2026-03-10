@@ -249,7 +249,7 @@ if (namaFotoSistem) updateData.foto_sistem = namaFotoSistem
 await db
     .from("asset")
     .update(updateData)
-    .eq("equip", currentId)
+    .eq("equip", equip)
             }
 
             let fotoFisik = null
@@ -322,3 +322,4 @@ function stopCamera() {
         </script>
     </body>
 </html>
+
