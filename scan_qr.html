@@ -93,27 +93,29 @@
                                value="${data.tim ?? ""}">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Foto Aset</label>
-                        <div class="mb-2">
-                            <canvas id="canvas" style="display:none;"></canvas>
-                            <img id="previewFoto" class="img-fluid rounded border" />
+                    <hr>
+                        <div class="row">
+                            <!-- FOTO FISIK -->
+                            <label class="fw-bold">Foto Fisik</label>
+                            <div class="col-md-6 mb-3">
+                                <img id="preview_fisik" class="img-thumbnail mb-2" style="max-width:180px">
+                                <video id="camera_fisik" autoplay playsinline class="border rounded mb-2" style="width:180px"></video>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="startCamera('fisik')" class="btn btn-primary btn-sm w-50"> Kamera </button>
+                                    <button type="button" onclick="takePhoto('fisik')" class="btn btn-warning btn-sm w-50"> Ambil </button>
+                                </div>
+                            </div>
+                            <!-- FOTO SISTEM -->
+                            <label class="fw-bold">Foto Sistem</label>
+                            <div class="col-md-6 mb-3">
+                                <img id="preview_sistem" class="img-thumbnail mb-2" style="max-width:180px">
+                                <video id="camera_sistem" autoplay playsinline class="border rounded mb-2" style="width:180px"></video>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="startCamera('sistem')" class="btn btn-primary btn-sm w-50"> Kamera </button>
+                                    <button type="button" onclick="takePhoto('sistem')" class="btn btn-warning btn-sm w-50">Ambil</button>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="mb-2">
-                            <video id="camera" width="100%" autoplay class="border rounded"></video>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="button" onclick="startCamera()" class="btn btn-primary">
-                                Buka Kamera
-                            </button>
-
-                            <button type="button" onclick="takePhoto()" class="btn btn-warning">
-                                Ambil Foto
-                            </button>
-                        </div>
-                    </div>
 
                     <div class="mt-3 d-grid gap-2">
                         <button onclick="updateAset()" class="btn btn-success">
@@ -130,52 +132,69 @@
             </div>
         `;
 
-                    if (data.foto) {
-                        const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto);
-                        document.getElementById("previewFoto").src = urlData.publicUrl;
-                    }
+                    if (data.foto_fisik) {
+                        const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_fisik);
+                        document.getElementById("preview_fisik").src = urlData.publicUrl;
+                    }if (data.foto_sistem) {
+                        const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_sistem);
+                        document.getElementById("preview_sistem").src = urlData.publicUrl;
+                    } 
                 }
 
                 window.updateAset = async function () {
+
                     if (!currentId) return;
 
                     const deskripsi = document.getElementById("deskripsi_edit").value.toUpperCase();
                     const tipe = document.getElementById("tipe_edit").value.toUpperCase();
                     const nama_user = document.getElementById("nama_user_edit").value.toUpperCase();
                     const tim = document.getElementById("tim_edit").value.toUpperCase();
+
                     const msg = document.getElementById("updateMsg");
                     msg.innerHTML = `<div class="alert alert-info">Mengupdate...</div>`;
 
-                    let namaFile = null;
+                    const equip = document
+                        .getElementById("equip_edit")
+                        .value
+                        .toUpperCase();
 
-                    if (fotoFile) {
-                         // Ambil equip
-                        const equip = document
-                            .getElementById("equip_edit")
-                            .value
-                            .toUpperCase()
+                    const now = new Date();
 
-                        // Format tanggal YYYYMMDDHHMMSS
-                        const now = new Date()
+                    const pad = (n) => n.toString().padStart(2, "0");
 
-                        const pad = (n) => n.toString().padStart(2, '0')
+                    const tanggal =
+                        now.getFullYear() +
+                        pad(now.getMonth() + 1) +
+                        pad(now.getDate()) +
+                        pad(now.getHours()) +
+                        pad(now.getMinutes()) +
+                        pad(now.getSeconds());
 
-                        const tanggal =
-                            now.getFullYear().toString() +
-                            pad(now.getMonth() + 1) +
-                            pad(now.getDate()) +
-                            pad(now.getHours()) +
-                            pad(now.getMinutes()) +
-                            pad(now.getSeconds())
+                    let namaFotoFisik = null;
+                    let namaFotoSistem = null;
 
-                        namaFile = `${equip}_${tanggal}.jpg`
-
-                        const { error: uploadError } = await db.storage
+                    // upload foto fisik
+                    if (fotoFisik) {
+                        namaFotoFisik = `${equip}_${tanggal}_fisik.jpg`;
+                        const { error } = await db.storage
                             .from("aset-foto")
-                            .upload(namaFile, fotoFile, { upsert: true });
+                            .upload(namaFotoFisik, fotoFisik, { upsert: true });
 
-                        if (uploadError) {
-                            msg.innerHTML = `<div class="alert alert-danger">${uploadError.message}</div>`;
+                        if (error) {
+                            msg.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+                            return;
+                        }
+                    }
+
+                    // upload foto sistem
+                    if (fotoSistem) {
+                        namaFotoSistem = `${equip}_${tanggal}_sistem.jpg`;
+                        const { error } = await db.storage
+                            .from("aset-foto")
+                            .upload(namaFotoSistem, fotoSistem, { upsert: true });
+
+                        if (error) {
+                            msg.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
                             return;
                         }
                     }
@@ -187,11 +206,13 @@
                         tim,
                     };
 
-                    if (namaFile) {
-                        updateData.foto = namaFile;
-                    }
+                    if (namaFotoFisik) updateData.foto_fisik = namaFotoFisik;
+                    if (namaFotoSistem) updateData.foto_sistem = namaFotoSistem;
 
-                    const { error } = await db.from("asset").update(updateData).eq("equip", currentId);
+                    const { error } = await db
+                        .from("asset")
+                        .update(updateData)
+                        .eq("equip", currentId);
 
                     if (error) {
                         msg.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
@@ -203,27 +224,28 @@
             });
 
             let stream = null;
-            let fotoFile = null;
+            let fotoFisik = null;
+            let fotoSistem = null;
+            let kameraAktif = null;
 
-            window.startCamera = async function () {
+            window.startCamera = async function (tipe) {
+                kameraAktif = tipe;
                 if (stream) stopCamera();
-
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: { ideal: "environment" } },
                         audio: false,
                     });
-
-                    document.getElementById("camera").srcObject = stream;
+                    document.getElementById("camera_" + tipe).srcObject = stream;
                 } catch (err) {
                     alert("Tidak bisa akses kamera: " + err.message);
                 }
             };
 
-            window.takePhoto = function () {
-                const video = document.getElementById("camera");
+            window.takePhoto = function (tipe) {
+                const video = document.getElementById("camera_" + tipe);
                 const canvas = document.getElementById("canvas");
-                const preview = document.getElementById("previewFoto");
+                const preview = document.getElementById("preview_" + tipe);
 
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
@@ -232,17 +254,24 @@
                 ctx.drawImage(video, 0, 0);
 
                 const imageData = canvas.toDataURL("image/jpeg", 0.8);
-
                 preview.src = imageData;
-
                 fetch(imageData)
                     .then((res) => res.blob())
                     .then((blob) => {
-                        fotoFile = new File([blob], "foto_aset.jpg", {
+
+                        const file = new File([blob], tipe + ".jpg", {
                             type: "image/jpeg",
                         });
-                    });
 
+                        if (tipe === "fisik") {
+                            fotoFisik = file;
+                        }
+
+                        if (tipe === "sistem") {
+                            fotoSistem = file;
+                        }
+
+                    });
                 stopCamera();
             };
 
