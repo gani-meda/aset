@@ -87,99 +87,69 @@
 
                 // Tampilkan dalam bentuk form
                 hasilDiv.innerHTML = `
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-
-                <div class="mb-3">
-                    <label class="form-label">Equipment</label>
-                    <input type="text" id="equip_edit" class="form-control" value="${data.equip}" disabled>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Deskripsi</label>
-                    <input type="text" id="deskripsi_edit" class="form-control" value="${data.deskripsi ?? ""}">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Tipe</label>
-                    <input type="text" id="tipe_edit" class="form-control" value="${data.tipe ?? ""}">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Nama User</label>
-                    <input type="text" id="nama_user_edit" class="form-control" value="${data.nama_user ?? ""}">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Tim</label>
-                    <input type="text" id="tim_edit" class="form-control" value="${data.tim ?? ""}">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label d-block">Status</label>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="deletion_edit" 
-                            value="0" ${data.deletion === "0" ? "checked" : ""}>
-                        <label class="form-check-label">Aktif</label>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Equipment</label>
+                            <input type="text" id="equip_edit" class="form-control" value="${data.equip}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Deskripsi</label>
+                            <input type="text" id="deskripsi_edit" class="form-control" value="${data.deskripsi ?? ""}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipe</label>
+                            <input type="text" id="tipe_edit" class="form-control" value="${data.tipe ?? ""}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama User</label>
+                            <input type="text" id="nama_user_edit" class="form-control" value="${data.nama_user ?? ""}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tim</label>
+                            <input type="text" id="tim_edit" class="form-control" value="${data.tim ?? ""}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label d-block">Status</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="deletion_edit" 
+                                value="0" ${data.deletion === "0" ? "checked" : ""}>
+                                <label class="form-check-label">Aktif</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="deletion_edit" 
+                                value="1" ${data.deletion === "1" ? "checked" : ""}>
+                                <label class="form-check-label">Delete</label>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <!-- FOTO FISIK -->
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Foto Fisik</label>
+                                <img id="preview_fisik" class="img-thumbnail mb-2" style="max-width:180px">
+                                <video id="camera_fisik" autoplay playsinline class="border rounded mb-2" style="width:180px"></video>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="startCamera('fisik')" class="btn btn-primary btn-sm w-50"> Kamera </button>
+                                    <button type="button" onclick="takePhoto('fisik')" class="btn btn-warning btn-sm w-50"> Ambil </button>
+                                </div>
+                            </div>
+                            <!-- FOTO SISTEM -->
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Foto Sistem</label>
+                                <img id="preview_sistem" class="img-thumbnail mb-2" style="max-width:180px">
+                                <video id="camera_sistem" autoplay playsinline class="border rounded mb-2" style="width:180px"></video>
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="startCamera('sistem')" class="btn btn-primary btn-sm w-50"> Kamera </button>
+                                    <button type="button" onclick="takePhoto('sistem')" class="btn btn-warning btn-sm w-50">Ambil</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="updateAset()" class="btn btn-success w-100">Update Data</button>
+                        <div id="updateMsg" class="mt-2"></div>
                     </div>
-
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="deletion_edit" 
-                            value="1" ${data.deletion === "1" ? "checked" : ""}>
-                        <label class="form-check-label">Delete</label>
-                    </div>
                 </div>
-
-  <hr>
-
-<label class="fw-bold">Foto Fisik</label>
-
-<video id="camera_fisik" autoplay playsinline 
-       class="w-100 border rounded mb-2"></video>
-
-<img id="preview_fisik" class="img-fluid border rounded mb-2"/>
-
-<div class="d-flex gap-2 mb-3">
-    <button type="button" onclick="startCamera('fisik')" 
-            class="btn btn-primary w-50">
-        Buka Kamera
-    </button>
-
-    <button type="button" onclick="takePhoto('fisik')" 
-            class="btn btn-warning w-50">
-        Ambil Foto
-    </button>
-</div>
-
-
-<label class="fw-bold">Foto Sistem</label>
-
-<video id="camera_sistem" autoplay playsinline 
-       class="w-100 border rounded mb-2"></video>
-
-<img id="preview_sistem" class="img-fluid border rounded mb-2"/>
-
-<div class="d-flex gap-2 mb-3">
-    <button type="button" onclick="startCamera('sistem')" 
-            class="btn btn-primary w-50">
-        Buka Kamera
-    </button>
-
-    <button type="button" onclick="takePhoto('sistem')" 
-            class="btn btn-warning w-50">
-        Ambil Foto
-    </button>
-</div>
-
-                <button onclick="updateAset()" class="btn btn-success w-100">
-                    Update Data
-                </button>
-
-                <div id="updateMessage" class="mt-3"></div>
-
-            </div>
-        </div>
-    `;
+            `;
 
                 if (data.foto_fisik) {
                     const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_fisik);
@@ -187,11 +157,7 @@
                 }if (data.foto_sistem) {
                     const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_sistem);
                     document.getElementById("preview_sistem").src = urlData.publicUrl;
-                }    
-
-
-
-
+                }  
             }
 
             function upper(id) {
@@ -205,148 +171,123 @@
                 const nama_user = upper("nama_user_edit");
                 const tim = upper("tim_edit");
 
-const now = new Date()
-const pad = (n) => n.toString().padStart(2,'0')
+                const now = new Date()
+                const pad = (n) => n.toString().padStart(2,'0')
 
-const tanggal =
-    now.getFullYear() +
-    pad(now.getMonth()+1) +
-    pad(now.getDate()) +
-    pad(now.getHours()) +
-    pad(now.getMinutes()) +
-    pad(now.getSeconds())
+                const tanggal =
+                    now.getFullYear() +
+                    pad(now.getMonth()+1) +
+                    pad(now.getDate()) +
+                    pad(now.getHours()) +
+                    pad(now.getMinutes()) +
+                    pad(now.getSeconds())
 
-let namaFotoFisik = null
-let namaFotoSistem = null
-
-
-// upload foto fisik
-if (fotoFisik) {
-
-    namaFotoFisik = `${equip}_${tanggal}_fisik.jpg`
-
-    await db.storage
-        .from("aset-foto")
-        .upload(namaFotoFisik, fotoFisik, { upsert: true })
-}
+                let namaFotoFisik = null
+                let namaFotoSistem = null
 
 
-// upload foto sistem
-if (fotoSistem) {
+                // upload foto fisik
+                if (fotoFisik) {
+                    namaFotoFisik = `${equip}_${tanggal}_fisik.jpg`
+                    await db.storage
+                        .from("aset-foto")
+                        .upload(namaFotoFisik, fotoFisik, { upsert: true })
+                }
 
-    namaFotoSistem = `${equip}_${tanggal}_sistem.jpg`
+                // upload foto sistem
+                if (fotoSistem) {
+                    namaFotoSistem = `${equip}_${tanggal}_sistem.jpg`
+                    await db.storage
+                        .from("aset-foto")
+                        .upload(namaFotoSistem, fotoSistem, { upsert: true })
+                }
 
-    await db.storage
-        .from("aset-foto")
-        .upload(namaFotoSistem, fotoSistem, { upsert: true })
-}
+                const updateData = {
+                    deskripsi,
+                    tipe,
+                    nama_user,
+                    tim
+                }
 
+                if (namaFotoFisik) updateData.foto_fisik = namaFotoFisik
+                if (namaFotoSistem) updateData.foto_sistem = namaFotoSistem
 
-const updateData = {
-    deskripsi,
-    tipe,
-    nama_user,
-    tim
-}
+                const { error } = await db
+                    .from("asset")
+                    .update(updateData)
+                    .eq("equip", equip)
+                            
+                const msg = document.getElementById("updateMsg");
 
-if (namaFotoFisik) updateData.foto_fisik = namaFotoFisik
-if (namaFotoSistem) updateData.foto_sistem = namaFotoSistem
+                if (error) {
+                    msg.innerHTML = `
+                    <div class="alert alert-danger">
+                        ${error.message}
+                    </div>`;
+                } else {
+                    msg.innerHTML = `
+                    <div class="alert alert-success">
+                        Data berhasil diupdate
+                    </div>`;
+                }
 
-
-await db
-    .from("asset")
-    .update(updateData)
-    .eq("equip", equip)
-            
-const msg = document.getElementById("updateMsg");
-
-if (error) {
-
-    msg.innerHTML = `
-    <div class="alert alert-danger">
-        ${error.message}
-    </div>`;
-
-} else {
-
-    msg.innerHTML = `
-    <div class="alert alert-success">
-        Data berhasil diupdate
-    </div>`;
-
-}
-
-
-
-}
-
-            let fotoFisik = null
-let fotoSistem = null
-let stream = null
-            
-async function startCamera(tipe) {
-
-    if (stream) stopCamera()
-
-    try {
-
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
-            audio: false
-        })
-
-        const video = document.getElementById(`camera_${tipe}`)
-        video.srcObject = stream
-
-    } catch (err) {
-        alert("Tidak bisa akses kamera")
-    }
-}
-
-function takePhoto(tipe) {
-
-    const video = document.getElementById(`camera_${tipe}`)
-    const canvas = document.createElement("canvas")
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-
-    const ctx = canvas.getContext("2d")
-    ctx.drawImage(video, 0, 0)
-
-    const imageData = canvas.toDataURL("image/jpeg", 0.8)
-
-    document.getElementById(`preview_${tipe}`).src = imageData
-
-    fetch(imageData)
-        .then(res => res.blob())
-        .then(blob => {
-
-            const file = new File([blob], `${tipe}.jpg`, {
-                type: "image/jpeg"
-            })
-
-            if (tipe === "fisik") {
-                fotoFisik = file
-            } else {
-                fotoSistem = file
             }
 
-        })
+            let fotoFisik = null
+            let fotoSistem = null
+            let stream = null
+                        
+            async function startCamera(tipe) {
+                if (stream) stopCamera()
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: "environment" } },
+                        audio: false
+                    })
+                    const video = document.getElementById(`camera_${tipe}`)
+                    video.srcObject = stream
+                } catch (err) {
+                    alert("Tidak bisa akses kamera")
+                }
+            }
 
-    stopCamera()
-}
+            function takePhoto(tipe) {
+                const video = document.getElementById(`camera_${tipe}`)
+                const canvas = document.createElement("canvas")
 
-function stopCamera() {
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-        stream = null
-    }
-}
+                canvas.width = video.videoWidth
+                canvas.height = video.videoHeight
 
+                const ctx = canvas.getContext("2d")
+                ctx.drawImage(video, 0, 0)
 
+                const imageData = canvas.toDataURL("image/jpeg", 0.8)
+                document.getElementById(`preview_${tipe}`).src = imageData
 
+                fetch(imageData)
+                    .then(res => res.blob())
+                    .then(blob => {
 
+                        const file = new File([blob], `${tipe}.jpg`, {
+                            type: "image/jpeg"
+                        })
+
+                        if (tipe === "fisik") {
+                            fotoFisik = file
+                        } else {
+                            fotoSistem = file
+                        }
+
+                    })
+                stopCamera()
+            }
+
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop())
+                    stream = null
+                }
+            }
         </script>
     </body>
 </html>
