@@ -184,7 +184,14 @@
                 if (data.foto_fisik) {
                     const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_fisik);
                     document.getElementById("preview_fisik").src = urlData.publicUrl;
-                }
+                }if (data.foto_sistem) {
+                    const { data: urlData } = db.storage.from("aset-foto").getPublicUrl(data.foto_sistem);
+                    document.getElementById("preview_sistem").src = urlData.publicUrl;
+                }    
+
+
+
+
             }
 
             function upper(id) {
@@ -250,7 +257,28 @@ await db
     .from("asset")
     .update(updateData)
     .eq("equip", equip)
-            }
+            
+const msg = document.getElementById("updateMsg");
+
+if (error) {
+
+    msg.innerHTML = `
+    <div class="alert alert-danger">
+        ${error.message}
+    </div>`;
+
+} else {
+
+    msg.innerHTML = `
+    <div class="alert alert-success">
+        Data berhasil diupdate
+    </div>`;
+
+}
+
+
+
+}
 
             let fotoFisik = null
 let fotoSistem = null
@@ -322,4 +350,3 @@ function stopCamera() {
         </script>
     </body>
 </html>
-
